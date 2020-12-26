@@ -15,6 +15,11 @@ public class DelayMessage {
      */
     private long savaTempTime;
 
+    /**
+     * 文件类型
+     */
+    private FileTypeEnum fileType;
+
     public String getTempId() {
         return tempId;
     }
@@ -31,5 +36,18 @@ public class DelayMessage {
     public DelayMessage setSavaTempTime(long savaTempTime) {
         this.savaTempTime = savaTempTime;
         return this;
+    }
+
+    public FileTypeEnum getFileType() {
+        return fileType;
+    }
+
+    public DelayMessage setFileType(FileTypeEnum fileType) {
+        this.fileType = fileType;
+        return this;
+    }
+
+    public enum FileTypeEnum {
+        FILE, PICTURE
     }
 }
