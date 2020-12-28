@@ -5,10 +5,6 @@ import com.luoyk.osf.core.cache.OsfCache;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 自定义的临时id,真实路径映射
@@ -17,24 +13,20 @@ import java.util.concurrent.TimeUnit;
  */
 public class LocalCache implements OsfCache {
 
-    private final int TIME_TO_LIVE;
+    private final int timeToLive;
 
     public static final Map<String, String> TEMP_ID_PATH_MAP = new HashMap<>();
 
-    private final ExecutorService EXECUTOR_SERVICE = new ThreadPoolExecutor(0, Integer.MAX_VALUE,
-            0L, TimeUnit.SECONDS,
-            new SynchronousQueue<>());
-
-    public LocalCache(int TIME_TO_LIVE) {
-        this.TIME_TO_LIVE = TIME_TO_LIVE;
+    public LocalCache(int timeToLive) {
+        this.timeToLive = timeToLive;
     }
 
     @Override
     public boolean newTempMap(String tempId, String path) {
         TEMP_ID_PATH_MAP.put(tempId, path);
-        EXECUTOR_SERVICE.execute(() -> {
+        LocalThreadPool.EXECUTOR_SERVICE.execute(() -> {
             try {
-                Thread.sleep(TIME_TO_LIVE);
+                Thread.sleep(timeToLive);
                 TEMP_ID_PATH_MAP.remove(tempId);
             } catch (InterruptedException e) {
                 e.printStackTrace();
