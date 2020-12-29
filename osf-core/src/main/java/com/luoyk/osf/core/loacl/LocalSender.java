@@ -1,7 +1,12 @@
 package com.luoyk.osf.core.loacl;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.luoyk.osf.core.mq.DelayMessage;
 import com.luoyk.osf.core.mq.OsfSender;
+
+import java.time.Duration;
+import java.util.BitSet;
 
 /**
  * 本地消息发送者
@@ -12,11 +17,8 @@ public class LocalSender implements OsfSender {
 
     private final int timeToLive;
 
-    private final LocalReceiver localReceiver;
-
-    public LocalSender(int timeToLive, LocalReceiver localReceiver) {
+    public LocalSender(int timeToLive) {
         this.timeToLive = timeToLive;
-        this.localReceiver = localReceiver;
     }
 
     @Override
@@ -24,7 +26,7 @@ public class LocalSender implements OsfSender {
         LocalThreadPool.EXECUTOR_SERVICE.execute(() -> {
             try {
                 Thread.sleep(timeToLive);
-                localReceiver.receive(delayMessage);
+                LocalThreadPool.EVENT_BUS.post(delayMessage);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

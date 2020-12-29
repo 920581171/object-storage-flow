@@ -1,5 +1,6 @@
 package com.luoyk.osf.core.loacl;
 
+import com.google.common.eventbus.Subscribe;
 import com.luoyk.osf.core.definition.AbstractOsf;
 import com.luoyk.osf.core.mq.DelayMessage;
 import com.luoyk.osf.core.mq.OsfReceiver;
@@ -15,9 +16,11 @@ public class LocalReceiver implements OsfReceiver {
 
     public LocalReceiver(AbstractOsf abstractOsf) {
         this.abstractOsf = abstractOsf;
+        LocalThreadPool.EVENT_BUS.register(this);
     }
 
     @Override
+    @Subscribe
     public boolean receive(DelayMessage delayMessage) {
         switch (delayMessage.getFileType()) {
             case FILE:

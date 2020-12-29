@@ -1,10 +1,12 @@
 package com.luoyk.osf.core.loacl;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.luoyk.osf.core.cache.OsfCache;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.time.Duration;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 /**
  * 自定义的临时id,真实路径映射
@@ -13,37 +15,36 @@ import java.util.Optional;
  */
 public class LocalCache implements OsfCache {
 
-    private final int timeToLive;
+    private static final Logger LOGGER = Logger.getLogger(LocalCache.class.getName());
 
-    public static final Map<String, String> TEMP_ID_PATH_MAP = new HashMap<>();
+    private final Cache<String, String> TEMP_ID_PATH_MAP;
 
     public LocalCache(int timeToLive) {
-        this.timeToLive = timeToLive;
+        TEMP_ID_PATH_MAP = CacheBuilder.newBuilder()
+                .removalListener(removalNotification -> {
+                    LOGGER.info("remove cache key:" + removalNotification.getKey() +
+                            ", value:" + removalNotification.getValue() +
+                            ", cause by:" + removalNotification.getCause());
+                })
+                .expireAfterWrite(Duration.ofMillis(timeToLive))
+                .build();
     }
 
     @Override
     public boolean newTempMap(String tempId, String path) {
         TEMP_ID_PATH_MAP.put(tempId, path);
-        LocalThreadPool.EXECUTOR_SERVICE.execute(() -> {
-            try {
-                Thread.sleep(timeToLive);
-                TEMP_ID_PATH_MAP.remove(tempId);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        });
         return true;
     }
 
     @Override
     public boolean removeTempId(String tempId) {
-        TEMP_ID_PATH_MAP.remove(tempId);
+        TEMP_ID_PATH_MAP.invalidate(tempId);
         return true;
     }
 
     @Override
     public Optional<String> getPathByTempId(String tempId) {
-        return Optional.ofNullable(TEMP_ID_PATH_MAP.get(tempId));
+        return Optional.ofNullable(TEMP_ID_PATH_MAP.getIfPresent(tempId));
     }
 
 }

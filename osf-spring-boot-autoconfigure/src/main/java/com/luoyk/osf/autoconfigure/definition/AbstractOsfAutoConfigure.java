@@ -87,7 +87,7 @@ public abstract class AbstractOsfAutoConfigure implements ApplicationContextAwar
             final JmsMessagingTemplate jmsMessagingTemplate = (JmsMessagingTemplate) applicationContext.getBean("jmsMessagingTemplate");
             return new JmsMessagingReceiver(jmsMessagingTemplate);
         } else {
-            logger.warning("No found mq, initialization OsfReceiver");
+            logger.warning("No found mq, initialization LocalReceiver");
             final AbstractOsf abstractOsf = (AbstractOsf) applicationContext.getBean("abstractOsf");
             return new LocalReceiver(abstractOsf);
         }
@@ -108,12 +108,8 @@ public abstract class AbstractOsfAutoConfigure implements ApplicationContextAwar
             logger.info("Found bean jmsMessagingTemplate, initialization JmsMessagingSender");
             return new JmsMessagingSender(jmsMessagingTemplate);
         } else {
-            logger.warning("No found mq, initialization OsfSender");
-            final OsfReceiver osfReceiver = (OsfReceiver) applicationContext.getBean("osfReceiver");
-            if (!(osfReceiver instanceof LocalReceiver)) {
-                throw new RuntimeException("No found bean localReceiver");
-            }
-            return new LocalSender(timeToLive, (LocalReceiver) osfReceiver);
+            logger.warning("No found mq, initialization LocalSender");
+            return new LocalSender(timeToLive);
         }
     }
 
