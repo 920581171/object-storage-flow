@@ -16,7 +16,7 @@ public class LocalReceiver implements OsfReceiver {
 
     public LocalReceiver(AbstractOsf abstractOsf) {
         this.abstractOsf = abstractOsf;
-        LocalThreadPool.EVENT_BUS.register(this);
+        LocalEventBus.EVENT_BUS.register(this);
     }
 
     @Override
