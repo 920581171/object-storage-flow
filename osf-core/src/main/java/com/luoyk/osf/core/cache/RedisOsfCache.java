@@ -11,27 +11,28 @@ import java.util.Optional;
  */
 public class RedisOsfCache implements OsfCache {
 
-    private final int TIME_TO_LIVE;
+    private final int timeToLive;
 
-    private final RedisTemplate<?, ?> redisTemplate;
+    private final RedisTemplate<Object,Object> redisTemplate;
 
-    public RedisOsfCache(int TIME_TO_LIVE, RedisTemplate<?, ?> redisTemplate) {
-        this.TIME_TO_LIVE = TIME_TO_LIVE;
+    public RedisOsfCache(int timeToLive, RedisTemplate<Object,Object> redisTemplate) {
+        this.timeToLive = timeToLive;
         this.redisTemplate = redisTemplate;
     }
 
     @Override
     public boolean newTempMap(String tempId, String path) {
-        return false;
+        redisTemplate.opsForValue().set(tempId,path,timeToLive);
+        return true;
     }
 
     @Override
     public boolean removeTempId(String tempId) {
-        return false;
+       return Optional.ofNullable(redisTemplate.delete(tempId)).orElse(false);
     }
 
     @Override
     public Optional<String> getPathByTempId(String tempId) {
-        return Optional.empty();
+        return Optional.ofNullable((String) redisTemplate.opsForValue().get(tempId));
     }
 }

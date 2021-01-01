@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jms.core.JmsMessagingTemplate;
+import org.springframework.lang.NonNull;
 
 import java.util.logging.Logger;
 
@@ -60,11 +61,11 @@ public abstract class AbstractOsfAutoConfigure implements ApplicationContextAwar
      * 如果不存在，则使用默认的Cache实现
      */
     @Bean
+    @SuppressWarnings("unchecked")
     public OsfCache osfCache() {
-
         if (applicationContext.containsBean("redisTemplate")) {
             logger.info("Found bean redisTemplate, initialization RedisOsfCache");
-            final RedisTemplate<?, ?> redisTemplate = (RedisTemplate<?, ?>) applicationContext.getBean("redisTemplate");
+            final RedisTemplate<Object, Object> redisTemplate = (RedisTemplate<Object, Object>) applicationContext.getBean("redisTemplate");
             return new RedisOsfCache(timeToLive, redisTemplate);
         } else {
             logger.warning("No found cache, initialization LocalCache");
@@ -78,17 +79,19 @@ public abstract class AbstractOsfAutoConfigure implements ApplicationContextAwar
      */
     @Bean
     public OsfReceiver osfReceiver() {
+
+        final AbstractOsf abstractOsf = (AbstractOsf) applicationContext.getBean("abstractOsf");
+
         if (applicationContext.containsBean("rabbitTemplate")) {
             logger.info("Found bean rabbitTemplate, initialization RabbitReceiver");
             final RabbitTemplate rabbitTemplate = (RabbitTemplate) applicationContext.getBean("rabbitTemplate");
-            return new RabbitReceiver(rabbitTemplate);
+            return new RabbitReceiver(rabbitTemplate, abstractOsf);
         } else if (applicationContext.containsBean("jmsMessagingTemplate")) {
             logger.info("Found bean jmsMessagingTemplate, initialization JmsMessagingReceiver");
             final JmsMessagingTemplate jmsMessagingTemplate = (JmsMessagingTemplate) applicationContext.getBean("jmsMessagingTemplate");
             return new JmsMessagingReceiver(jmsMessagingTemplate);
         } else {
             logger.warning("No found mq, initialization LocalReceiver");
-            final AbstractOsf abstractOsf = (AbstractOsf) applicationContext.getBean("abstractOsf");
             return new LocalReceiver(abstractOsf);
         }
     }
@@ -102,7 +105,7 @@ public abstract class AbstractOsfAutoConfigure implements ApplicationContextAwar
         if (applicationContext.containsBean("rabbitTemplate")) {
             final RabbitTemplate rabbitTemplate = (RabbitTemplate) applicationContext.getBean("rabbitTemplate");
             logger.info("Found bean rabbitTemplate, initialization RabbitSender");
-            return new RabbitSender(rabbitTemplate);
+            return new RabbitSender(timeToLive, rabbitTemplate);
         } else if (applicationContext.containsBean("jmsMessagingTemplate")) {
             final JmsMessagingTemplate jmsMessagingTemplate = (JmsMessagingTemplate) applicationContext.getBean("jmsMessagingTemplate");
             logger.info("Found bean jmsMessagingTemplate, initialization JmsMessagingSender");
@@ -123,8 +126,16 @@ public abstract class AbstractOsfAutoConfigure implements ApplicationContextAwar
         this.environment = environment;
     }
 
+    public final Environment getEnvironment() {
+        return environment;
+    }
+
     @Override
-    public final void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    public final void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    public final ApplicationContext getApplicationContext() {
+        return applicationContext;
     }
 }
