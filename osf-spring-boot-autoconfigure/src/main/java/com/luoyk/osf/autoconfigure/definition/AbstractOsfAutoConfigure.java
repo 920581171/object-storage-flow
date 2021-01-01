@@ -15,8 +15,6 @@ import com.luoyk.osf.core.mq.rabbit.RabbitSender;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -31,7 +29,7 @@ import java.util.logging.Logger;
  *
  * @author luoyk
  */
-public abstract class AbstractOsfAutoConfigure implements ApplicationContextAware, EnvironmentAware {
+public abstract class AbstractOsfAutoConfigure implements OsfAutoConfigure {
 
     protected final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -78,6 +76,7 @@ public abstract class AbstractOsfAutoConfigure implements ApplicationContextAwar
      * 如果不存在，则使用默认的OsfReceiver实现
      */
     @Bean
+    @Override
     public OsfReceiver osfReceiver() {
 
         final AbstractOsf abstractOsf = (AbstractOsf) applicationContext.getBean("abstractOsf");
@@ -101,6 +100,7 @@ public abstract class AbstractOsfAutoConfigure implements ApplicationContextAwar
      * 如果不存在，则使用默认的OsfSender实现
      */
     @Bean
+    @Override
     public OsfSender osfSender() {
         if (applicationContext.containsBean("rabbitTemplate")) {
             final RabbitTemplate rabbitTemplate = (RabbitTemplate) applicationContext.getBean("rabbitTemplate");

@@ -11,6 +11,7 @@ import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.classreading.MetadataReader;
 import org.springframework.core.type.classreading.MetadataReaderFactory;
 import org.springframework.core.type.filter.AbstractTypeHierarchyTraversingFilter;
+import org.springframework.lang.NonNull;
 
 import java.util.*;
 import java.util.function.Function;
@@ -31,7 +32,7 @@ public class OsfConfigureRegister implements ImportBeanDefinitionRegistrar, Envi
     private Environment environment;
 
     @Override
-    public void registerBeanDefinitions(AnnotationMetadata annotationMetadata, BeanDefinitionRegistry beanDefinitionRegistry) {
+    public void registerBeanDefinitions(@NonNull AnnotationMetadata annotationMetadata, BeanDefinitionRegistry beanDefinitionRegistry) {
 
         //类路径扫描器
         ClassPathScanningCandidateComponentProvider scanner =
@@ -43,7 +44,7 @@ public class OsfConfigureRegister implements ImportBeanDefinitionRegistrar, Envi
              * 只返回继承了{@link AbstractOsfAutoConfigure}的类
              */
             @Override
-            public boolean match(MetadataReader metadataReader, MetadataReaderFactory metadataReaderFactory) {
+            public boolean match(@NonNull MetadataReader metadataReader, @NonNull MetadataReaderFactory metadataReaderFactory) {
                 return Objects.equals(metadataReader.getClassMetadata().getSuperClassName(), AbstractOsfAutoConfigure.class.getName());
             }
         });
@@ -60,7 +61,7 @@ public class OsfConfigureRegister implements ImportBeanDefinitionRegistrar, Envi
     }
 
     @Override
-    public void setEnvironment(Environment environment) {
+    public void setEnvironment(@NonNull Environment environment) {
         this.environment = environment;
     }
 
