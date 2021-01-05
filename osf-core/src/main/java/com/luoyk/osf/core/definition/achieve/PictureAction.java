@@ -17,7 +17,7 @@ public abstract class PictureAction implements OsfAction {
      *
      * @return tempId
      */
-    protected abstract String saveTempProvider(InputStream inputStream);
+    protected abstract String saveTempProvider(String filename, InputStream inputStream);
 
     /**
      * 重写该方法，以提供保存正式文件的方法
@@ -66,12 +66,14 @@ public abstract class PictureAction implements OsfAction {
     /**
      * 保存临时文件的同时保存缩略图
      *
+     * @param filename    文件名称
      * @param inputStream 文件输入流
      * @return 主文件临时地址
      */
-    public final String saveTemp(InputStream inputStream) {
+    @Override
+    public final String saveTemp(String filename, InputStream inputStream) {
         makeThumbnail(inputStream);
-        return saveTempProvider(inputStream);
+        return saveTempProvider(filename, inputStream);
     }
 
     /**
@@ -80,6 +82,7 @@ public abstract class PictureAction implements OsfAction {
      * @param tempId 临时文件
      * @return 正式文件访问路径
      */
+    @Override
     public final String transferFile(String tempId) {
         transferThumbnail(tempId);
         return transferFileProvider(tempId);
@@ -91,6 +94,7 @@ public abstract class PictureAction implements OsfAction {
      * @param file 文件输入流
      * @return 主文件是否删除成功
      */
+    @Override
     public boolean delete(String file) {
         deleteThumbnail(file);
         return deleteProvider(file);
@@ -102,6 +106,7 @@ public abstract class PictureAction implements OsfAction {
      * @param file 文件输入流
      * @return 主文件是否删除成功
      */
+    @Override
     public boolean deleteTemp(String file) {
         deleteTempProvider(file);
         return deleteTempProvider(file);

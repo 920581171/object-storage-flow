@@ -9,10 +9,11 @@ public interface OsfAction extends Action{
     /**
      * 保存临时文件，获取临时Id
      *
+     * @param filename 文件名称
      * @param inputStream 文件输入流
      * @return 临时文件Id
      */
-    String saveTemp(InputStream inputStream);
+    String saveTemp(String filename,InputStream inputStream);
 
     /**
      * 转存临时文件到正式文件，
