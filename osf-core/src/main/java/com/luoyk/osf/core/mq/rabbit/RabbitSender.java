@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 public class RabbitSender implements OsfSender {
 
-    public static final Logger LOGGER = Logger.getLogger(RabbitSender.class.getName());
+    public final Logger logger = Logger.getLogger(this.getClass().getName());
 
     /**
      * 延迟队列
@@ -66,9 +66,10 @@ public class RabbitSender implements OsfSender {
             final ObjectMapper objectMapper = new ObjectMapper();
             final byte[] bytes = objectMapper.writeValueAsBytes(delayMessage);
             rabbitTemplate.convertAndSend(DELAY_EXCHANGE, ROUTING_KEY, bytes);
+            logger.info("RabbitSender " + delayMessage.toString());
             return true;
         } catch (JsonProcessingException e) {
-            LOGGER.severe("JsonProcessingException");
+            logger.severe("JsonProcessingException");
             e.printStackTrace();
             return false;
         }
@@ -81,13 +82,15 @@ public class RabbitSender implements OsfSender {
      */
     public void delayDeclare(Channel channel) throws IOException {
         final Map<String, Object> args = new HashMap<>();
+        String delayQueue = DELAY_QUEUE + "." + timeToLive + ".ttl";
         args.put("x-message-ttl", timeToLive);
         //定义消息成死信之后进入的交换机
         args.put("x-dead-letter-exchange", DLX_EXCHANGE);
-        channel.queueDeclare(DELAY_QUEUE, true, false, false, args);
+        channel.queueDeclare(delayQueue, true, false, false, args);
         channel.exchangeDeclare(DELAY_EXCHANGE, "topic", true, false, null);
         //延迟消息队列绑定延迟交换机
-        channel.queueBind(DELAY_QUEUE, DELAY_EXCHANGE, ROUTING_KEY);
+        channel.queueBind(delayQueue, DELAY_EXCHANGE, ROUTING_KEY);
+        logger.info("Binding queue " + delayQueue + " to exchange " + DELAY_EXCHANGE);
     }
 
     /**
@@ -100,5 +103,6 @@ public class RabbitSender implements OsfSender {
         channel.exchangeDeclare(DLX_EXCHANGE, "topic", true, false, null);
         //死信队列绑定死信交换机
         channel.queueBind(DLX_QUEUE, DLX_EXCHANGE, ROUTING_KEY);
+        logger.info("Binding queue " + DLX_QUEUE + " to exchange " + DLX_EXCHANGE);
     }
 }

@@ -15,17 +15,16 @@ import java.util.logging.Logger;
  */
 public class LocalCache implements OsfCache {
 
-    private static final Logger LOGGER = Logger.getLogger(LocalCache.class.getName());
+    private final Logger logger = Logger.getLogger(LocalCache.class.getName());
 
     private final Cache<String, String> TEMP_ID_PATH_MAP;
 
     public LocalCache(int timeToLive) {
         TEMP_ID_PATH_MAP = CacheBuilder.newBuilder()
-                .removalListener(removalNotification -> {
-                    LOGGER.info("remove cache key:" + removalNotification.getKey() +
-                            ", value:" + removalNotification.getValue() +
-                            ", cause by:" + removalNotification.getCause());
-                })
+                .removalListener(removalNotification ->
+                        logger.info("remove cache key:" + removalNotification.getKey() +
+                                ", value:" + removalNotification.getValue() +
+                                ", cause by:" + removalNotification.getCause()))
                 .expireAfterWrite(Duration.ofMillis(timeToLive))
                 .build();
     }

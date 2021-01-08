@@ -14,11 +14,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 /**
  * @author luoyk
  */
 public abstract class AbstractOsf {
+
+    public final Logger logger = Logger.getLogger(this.getClass().getName());
 
     /**
      * MimeType BMP文件
@@ -46,7 +49,7 @@ public abstract class AbstractOsf {
      *
      * @return TempId
      */
-    public String getTempId() {
+    public String getTempUuid() {
         return UUID.randomUUID().toString().replace("-", "");
     }
 
@@ -120,7 +123,7 @@ public abstract class AbstractOsf {
                     .toOutputStream(byteArrayOutputStream);
             return byteArrayOutputStream.toByteArray();
         } catch (IOException e) {
-            throw new OsfException("Compress image error");
+            throw new OsfException("Compress image error: " + e.getMessage());
         }
     }
 
@@ -142,7 +145,7 @@ public abstract class AbstractOsf {
                     .toOutputStream(byteArrayOutputStream);
             return byteArrayOutputStream.toByteArray();
         } catch (IOException e) {
-            throw new OsfException("Resize image error");
+            throw new OsfException("Resize image error: " + e.getMessage());
         }
     }
 

@@ -72,32 +72,9 @@ public abstract class AbstractOsfAutoConfigure implements OsfAutoConfigure {
     }
 
     /**
-     * 根据是否存在对应的MQ Bean，创建OsfReceiver Bean
-     * 如果不存在，则使用默认的OsfReceiver实现
-     */
-    @Bean
-    @Override
-    public OsfReceiver osfReceiver() {
-
-        final AbstractOsf abstractOsf = (AbstractOsf) applicationContext.getBean("abstractOsf");
-
-        if (applicationContext.containsBean("rabbitTemplate")) {
-            logger.info("Found bean rabbitTemplate, initialization RabbitReceiver");
-            final RabbitTemplate rabbitTemplate = (RabbitTemplate) applicationContext.getBean("rabbitTemplate");
-            return new RabbitReceiver(rabbitTemplate, abstractOsf);
-        } else if (applicationContext.containsBean("jmsMessagingTemplate")) {
-            logger.info("Found bean jmsMessagingTemplate, initialization JmsMessagingReceiver");
-            final JmsMessagingTemplate jmsMessagingTemplate = (JmsMessagingTemplate) applicationContext.getBean("jmsMessagingTemplate");
-            return new JmsMessagingReceiver(jmsMessagingTemplate);
-        } else {
-            logger.warning("No found mq, initialization LocalReceiver");
-            return new LocalReceiver(abstractOsf);
-        }
-    }
-
-    /**
      * 根据是否存在对应的MQ Bean，创建OsfSender Bean
      * 如果不存在，则使用默认的OsfSender实现
+     * bean的生成有顺序，先Sender创建队列，后生成Receiver监听队列
      */
     @Bean
     @Override
@@ -113,6 +90,28 @@ public abstract class AbstractOsfAutoConfigure implements OsfAutoConfigure {
         } else {
             logger.warning("No found mq, initialization LocalSender");
             return new LocalSender(timeToLive);
+        }
+    }
+
+    /**
+     * 根据是否存在对应的MQ Bean，创建OsfReceiver Bean
+     * 如果不存在，则使用默认的OsfReceiver实现
+     */
+    @Bean
+    @Override
+    public OsfReceiver osfReceiver() {
+        final AbstractOsf abstractOsf = (AbstractOsf) applicationContext.getBean("abstractOsf");
+        if (applicationContext.containsBean("rabbitTemplate")) {
+            logger.info("Found bean rabbitTemplate, initialization RabbitReceiver");
+            final RabbitTemplate rabbitTemplate = (RabbitTemplate) applicationContext.getBean("rabbitTemplate");
+            return new RabbitReceiver(rabbitTemplate, abstractOsf);
+        } else if (applicationContext.containsBean("jmsMessagingTemplate")) {
+            logger.info("Found bean jmsMessagingTemplate, initialization JmsMessagingReceiver");
+            final JmsMessagingTemplate jmsMessagingTemplate = (JmsMessagingTemplate) applicationContext.getBean("jmsMessagingTemplate");
+            return new JmsMessagingReceiver(jmsMessagingTemplate);
+        } else {
+            logger.warning("No found mq, initialization LocalReceiver");
+            return new LocalReceiver(abstractOsf);
         }
     }
 

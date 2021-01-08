@@ -6,6 +6,7 @@ import com.luoyk.osf.core.mq.OsfSender;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 /**
  * 本地消息发送者
@@ -13,6 +14,8 @@ import java.util.concurrent.Executors;
  * @author luoyk
  */
 public class LocalSender implements OsfSender {
+
+    private final Logger logger = Logger.getLogger(this.getClass().getName());
 
     private final int timeToLive;
 
@@ -34,6 +37,7 @@ public class LocalSender implements OsfSender {
 
     @Override
     public boolean send(DelayMessage delayMessage) {
+        logger.info("LocalSender " + delayMessage.toString());
         queue.put(new LocalDelayed(delayMessage, timeToLive));
         return true;
     }

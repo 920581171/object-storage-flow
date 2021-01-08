@@ -5,15 +5,15 @@ import java.io.InputStream;
 /**
  * 定义了OSF中最基本的操作
  */
-public interface OsfAction extends Action{
+public interface OsfAction extends Action {
     /**
      * 保存临时文件，获取临时Id
      *
-     * @param filename 文件名称
+     * @param filename    文件名称
      * @param inputStream 文件输入流
      * @return 临时文件Id
      */
-    String saveTemp(String filename,InputStream inputStream);
+    String saveTemp(String filename, InputStream inputStream);
 
     /**
      * 转存临时文件到正式文件，
@@ -41,10 +41,10 @@ public interface OsfAction extends Action{
     boolean delete(String file);
 
     /**
-     * 删除文件
+     * 删除缓存文件
      *
-     * @param file 文件id或者地址
+     * @param tempPath 临时文件路径
      * @return 是否删除成功
      */
-    boolean deleteTemp(String file);
+    boolean deleteTemp(String tempPath);
 }
