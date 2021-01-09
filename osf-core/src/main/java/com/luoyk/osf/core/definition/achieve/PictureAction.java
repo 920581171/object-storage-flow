@@ -3,6 +3,9 @@ package com.luoyk.osf.core.definition.achieve;
 import com.luoyk.osf.core.definition.OsfAction;
 import com.luoyk.osf.core.exception.OsfException;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -47,7 +50,7 @@ public abstract class PictureAction implements OsfAction {
      *
      * @throws OsfException 抛出异常
      */
-    protected abstract void makeThumbnail(InputStream inputStream) throws OsfException;
+    protected abstract void makeThumbnail(String tempId, String filename, InputStream inputStream) throws OsfException;
 
     /**
      * 重写该方法，保存缩略图
@@ -64,6 +67,13 @@ public abstract class PictureAction implements OsfAction {
     protected abstract void deleteThumbnail(String file) throws OsfException;
 
     /**
+     * 重写该方法，删除缓存缩略图
+     *
+     * @throws OsfException 抛出异常
+     */
+    protected abstract void deleteTempThumbnail(String file) throws OsfException;
+
+    /**
      * 保存临时文件的同时保存缩略图
      *
      * @param filename    文件名称
@@ -72,8 +82,19 @@ public abstract class PictureAction implements OsfAction {
      */
     @Override
     public final String saveTemp(String filename, InputStream inputStream) {
-        makeThumbnail(inputStream);
-        return saveTempProvider(filename, inputStream);
+
+        InputStream resetStream = inputStream.markSupported() ?
+                inputStream :
+                copyMarkSteam(inputStream);
+
+        try {
+            String tempId = saveTempProvider(filename, resetStream);
+            resetStream.reset();
+            makeThumbnail(tempId, filename, resetStream);
+            return tempId;
+        } catch (IOException e) {
+            throw new OsfException("Reset stream error", e);
+        }
     }
 
     /**
@@ -96,8 +117,11 @@ public abstract class PictureAction implements OsfAction {
      */
     @Override
     public boolean delete(String file) {
-        deleteThumbnail(file);
-        return deleteProvider(file);
+        boolean deleted = deleteProvider(file);
+        if (deleted) {
+            deleteThumbnail(file);
+        }
+        return deleted;
     }
 
     /**
@@ -108,11 +132,14 @@ public abstract class PictureAction implements OsfAction {
      */
     @Override
     public boolean deleteTemp(String file) {
-        deleteTempProvider(file);
-        return deleteTempProvider(file);
+        boolean deleted = deleteTempProvider(file);
+        if (deleted) {
+            deleteTempThumbnail(file);
+        }
+        return deleted;
     }
 
-    public enum PictureSize {
+    public enum PictureSizeEnum {
 
         /**
          * 大图
@@ -141,9 +168,29 @@ public abstract class PictureAction implements OsfAction {
             return size;
         }
 
-        PictureSize(String fixName, int size) {
+        PictureSizeEnum(String fixName, int size) {
             this.fixName = fixName;
             this.size = size;
+        }
+    }
+
+    /**
+     * 把不支持reset的inputStream转换为支持reset的inputStream
+     */
+    public InputStream copyMarkSteam(InputStream inputStream) {
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                byteArrayOutputStream.write(buffer, 0, bytesRead);
+            }
+            byteArrayOutputStream.flush();
+
+            return new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+
+        } catch (Exception e) {
+            throw new OsfException("Copy stream error", e);
         }
     }
 }

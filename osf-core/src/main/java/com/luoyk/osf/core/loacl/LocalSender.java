@@ -24,20 +24,8 @@ public class LocalSender implements OsfSender, ApplicationEventPublisherAware {
 
     private final DelayQueue<LocalDelayed> queue = new DelayQueue<>();
 
-    private ApplicationEventPublisher applicationEventPublisher;
-
     public LocalSender(int timeToLive) {
         this.timeToLive = timeToLive;
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(() -> {
-            while (!Thread.currentThread().isInterrupted()) {
-                try {
-                    applicationEventPublisher.publishEvent(queue.take().getDelayMessage());
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
     }
 
     @Override
@@ -49,6 +37,15 @@ public class LocalSender implements OsfSender, ApplicationEventPublisherAware {
 
     @Override
     public void setApplicationEventPublisher(@NonNull ApplicationEventPublisher applicationEventPublisher) {
-        this.applicationEventPublisher = applicationEventPublisher;
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.execute(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    applicationEventPublisher.publishEvent(new LocalEvent(queue.take().getDelayMessage()));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 }

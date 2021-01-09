@@ -1,5 +1,11 @@
 osf:
   server: minio
+  timeToLive: 30000
+  minio:
+    endpoint: http://127.0.0.1:9000
+    accessKey: minioadmin
+    secretKey: minioadmin
+    bucketName: test
 
 spring:
   rabbitmq:
