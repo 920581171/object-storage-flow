@@ -2,6 +2,9 @@ package com.luoyk.osf.core.loacl;
 
 import com.luoyk.osf.core.mq.DelayMessage;
 import com.luoyk.osf.core.mq.OsfSender;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.lang.NonNull;
 
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutorService;
@@ -13,7 +16,7 @@ import java.util.logging.Logger;
  *
  * @author luoyk
  */
-public class LocalSender implements OsfSender {
+public class LocalSender implements OsfSender, ApplicationEventPublisherAware {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -21,13 +24,15 @@ public class LocalSender implements OsfSender {
 
     private final DelayQueue<LocalDelayed> queue = new DelayQueue<>();
 
+    private ApplicationEventPublisher applicationEventPublisher;
+
     public LocalSender(int timeToLive) {
         this.timeToLive = timeToLive;
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.execute(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    LocalEventBus.EVENT_BUS.post(queue.take().getDelayMessage());
+                    applicationEventPublisher.publishEvent(queue.take().getDelayMessage());
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -40,5 +45,10 @@ public class LocalSender implements OsfSender {
         logger.info("LocalSender " + delayMessage.toString());
         queue.put(new LocalDelayed(delayMessage, timeToLive));
         return true;
+    }
+
+    @Override
+    public void setApplicationEventPublisher(@NonNull ApplicationEventPublisher applicationEventPublisher) {
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 }

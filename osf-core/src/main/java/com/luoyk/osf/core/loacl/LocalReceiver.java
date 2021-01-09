@@ -1,9 +1,9 @@
 package com.luoyk.osf.core.loacl;
 
-import com.google.common.eventbus.Subscribe;
 import com.luoyk.osf.core.definition.AbstractOsf;
 import com.luoyk.osf.core.mq.DelayMessage;
 import com.luoyk.osf.core.mq.OsfReceiver;
+import org.springframework.context.ApplicationListener;
 
 import java.util.logging.Logger;
 
@@ -12,7 +12,7 @@ import java.util.logging.Logger;
  *
  * @author luoyk
  */
-public class LocalReceiver implements OsfReceiver {
+public class LocalReceiver implements OsfReceiver, ApplicationListener<LocalEvent> {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -20,11 +20,9 @@ public class LocalReceiver implements OsfReceiver {
 
     public LocalReceiver(AbstractOsf abstractOsf) {
         this.abstractOsf = abstractOsf;
-        LocalEventBus.EVENT_BUS.register(this);
     }
 
     @Override
-    @Subscribe
     public boolean receive(DelayMessage delayMessage) {
         logger.info("LocalReceiver " + delayMessage.toString());
         boolean deleted = false;
@@ -45,5 +43,10 @@ public class LocalReceiver implements OsfReceiver {
         }
 
         return deleted;
+    }
+
+    @Override
+    public void onApplicationEvent(LocalEvent event) {
+        receive(((DelayMessage) event.getSource()));
     }
 }
