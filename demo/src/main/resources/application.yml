@@ -1,5 +1,5 @@
 osf:
-  server: minio
+  server: mongodb
   timeToLive: 30000
   minio:
     endpoint: http://127.0.0.1:9000
@@ -8,6 +8,12 @@ osf:
     bucketName: test
 
 spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: test
+
   rabbitmq:
     host: localhost
     port: 5672
