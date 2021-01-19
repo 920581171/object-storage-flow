@@ -1,19 +1,22 @@
 package com.luoyk.osf.core.mq.jms;
 
+import com.luoyk.osf.core.definition.AbstractOsf;
+import com.luoyk.osf.core.mq.DefaultReceiver;
 import com.luoyk.osf.core.mq.DelayMessage;
-import com.luoyk.osf.core.mq.OsfReceiver;
 import org.springframework.jms.core.JmsMessagingTemplate;
 
-public class JmsMessagingReceiver implements OsfReceiver {
+public class JmsMessagingReceiver extends DefaultReceiver {
 
     private final JmsMessagingTemplate jmsMessagingTemplate;
 
-    public JmsMessagingReceiver(JmsMessagingTemplate jmsMessagingTemplate) {
+
+    public JmsMessagingReceiver(JmsMessagingTemplate jmsMessagingTemplate, AbstractOsf abstractOsf) {
+        super(abstractOsf);
         this.jmsMessagingTemplate = jmsMessagingTemplate;
     }
 
     @Override
-    public boolean receive(DelayMessage delayMessage) {
+    public boolean handler(DelayMessage delayMessage) {
         return false;
     }
 }

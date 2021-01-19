@@ -2,8 +2,8 @@ package com.luoyk.osf.core.mq.rabbit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.luoyk.osf.core.definition.AbstractOsf;
+import com.luoyk.osf.core.mq.DefaultReceiver;
 import com.luoyk.osf.core.mq.DelayMessage;
-import com.luoyk.osf.core.mq.OsfReceiver;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
@@ -14,16 +14,19 @@ import java.util.logging.Logger;
 
 import static com.luoyk.osf.core.mq.rabbit.RabbitSender.DLX_QUEUE;
 
-public class RabbitReceiver implements OsfReceiver {
+/**
+ * 基于RabbitMQ的消息接收者
+ *
+ * @author luoyk
+ */
+public class RabbitReceiver extends DefaultReceiver {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
 
     private final RabbitTemplate rabbitTemplate;
 
-    private final AbstractOsf abstractOsf;
-
     public RabbitReceiver(RabbitTemplate rabbitTemplate, AbstractOsf abstractOsf) {
-        this.abstractOsf = abstractOsf;
+        super(abstractOsf);
         this.rabbitTemplate = rabbitTemplate;
         registerListener();
     }
@@ -47,14 +50,14 @@ public class RabbitReceiver implements OsfReceiver {
     }
 
     @Override
-    public boolean receive(DelayMessage delayMessage) {
+    public boolean handler(DelayMessage delayMessage) {
         boolean deleted = false;
         switch (delayMessage.getFileType()) {
             case FILE:
-                deleted = abstractOsf.getFileAction().deleteTemp(delayMessage.getTempPath());
+                deleted = getAbstractOsf().getFileAction().deleteTemp(delayMessage.getTempPath());
                 break;
             case PICTURE:
-                deleted = abstractOsf.getPictureAction().deleteTemp(delayMessage.getTempPath());
+                deleted = getAbstractOsf().getPictureAction().deleteTemp(delayMessage.getTempPath());
                 break;
         }
 

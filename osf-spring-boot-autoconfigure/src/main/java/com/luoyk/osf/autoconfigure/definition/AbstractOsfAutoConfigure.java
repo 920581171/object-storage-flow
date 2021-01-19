@@ -108,7 +108,7 @@ public abstract class AbstractOsfAutoConfigure implements OsfAutoConfigure {
         } else if (applicationContext.containsBean("jmsMessagingTemplate")) {
             logger.info("Found bean jmsMessagingTemplate, initialization JmsMessagingReceiver");
             final JmsMessagingTemplate jmsMessagingTemplate = (JmsMessagingTemplate) applicationContext.getBean("jmsMessagingTemplate");
-            return new JmsMessagingReceiver(jmsMessagingTemplate);
+            return new JmsMessagingReceiver(jmsMessagingTemplate, abstractOsf);
         } else {
             logger.warning("No found mq, initialization LocalReceiver");
             return new LocalReceiver(abstractOsf);

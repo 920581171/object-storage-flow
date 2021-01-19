@@ -12,6 +12,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+/**
+ * 基于RabbitMQ的消息发送者
+ *
+ * @author luoyk
+ */
 public class RabbitSender implements OsfSender {
 
     public final Logger logger = Logger.getLogger(this.getClass().getName());

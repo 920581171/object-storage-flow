@@ -1,8 +1,8 @@
 package com.luoyk.osf.core.loacl;
 
 import com.luoyk.osf.core.definition.AbstractOsf;
+import com.luoyk.osf.core.mq.DefaultReceiver;
 import com.luoyk.osf.core.mq.DelayMessage;
-import com.luoyk.osf.core.mq.OsfReceiver;
 import org.springframework.context.ApplicationListener;
 
 import java.util.logging.Logger;
@@ -12,27 +12,25 @@ import java.util.logging.Logger;
  *
  * @author luoyk
  */
-public class LocalReceiver implements OsfReceiver, ApplicationListener<LocalEvent> {
+public class LocalReceiver extends DefaultReceiver implements ApplicationListener<LocalEvent> {
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private final AbstractOsf abstractOsf;
-
     public LocalReceiver(AbstractOsf abstractOsf) {
-        this.abstractOsf = abstractOsf;
+        super(abstractOsf);
     }
 
     @Override
-    public boolean receive(DelayMessage delayMessage) {
+    public boolean handler(DelayMessage delayMessage) {
         logger.info("LocalReceiver " + delayMessage.toString());
         boolean deleted = false;
         String tempPath = delayMessage.getTempPath();
         switch (delayMessage.getFileType()) {
             case FILE:
-                deleted = abstractOsf.getFileAction().deleteTemp(tempPath);
+                deleted = getAbstractOsf().getFileAction().deleteTemp(tempPath);
                 break;
             case PICTURE:
-                deleted = abstractOsf.getPictureAction().deleteTemp(tempPath);
+                deleted = getAbstractOsf().getPictureAction().deleteTemp(tempPath);
                 break;
         }
 
