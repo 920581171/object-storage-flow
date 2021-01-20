@@ -22,17 +22,34 @@ public class RedisOsfCache implements OsfCache {
 
     @Override
     public boolean newTempMap(String tempId, String path) {
-        redisTemplate.opsForValue().set(tempId,path,timeToLive);
+        redisTemplate.opsForValue().set(tempId,path);
         return true;
     }
 
     @Override
     public boolean removeTempId(String tempId) {
-       return Optional.ofNullable(redisTemplate.delete(tempId)).orElse(false);
+        redisTemplate.opsForValue().get(tempId);
+        return true;
     }
 
     @Override
     public Optional<String> getPathByTempId(String tempId) {
+        return Optional.ofNullable((String) redisTemplate.opsForValue().get(tempId));
+    }
+
+    @Override
+    public boolean newCountDownTempMap(String tempId, String path) {
+        redisTemplate.opsForValue().set(tempId,path,timeToLive);
+        return true;
+    }
+
+    @Override
+    public boolean removeCountDownTempId(String tempId) {
+       return Optional.ofNullable(redisTemplate.delete(tempId)).orElse(false);
+    }
+
+    @Override
+    public Optional<String> getCountDownPathByTempId(String tempId) {
         return Optional.ofNullable((String) redisTemplate.opsForValue().get(tempId));
     }
 }

@@ -52,7 +52,7 @@ public class MinioOsf extends AbstractOsf {
                             .stream(stream, stream.available(), -1)
                             .build());
 
-                    osfCache.newTempMap(tempUuid, tempName);
+                    osfCache.newCountDownTempMap(tempUuid, tempName);
                     osfSender.send(DelayMessage.newFileDelayMessage(tempName));
 
                     return tempUuid;
@@ -64,7 +64,7 @@ public class MinioOsf extends AbstractOsf {
             @Override
             public String transferFile(String tempId) {
                 try {
-                    String tempName = osfCache.getPathByTempId(tempId).orElseThrow(
+                    String tempName = osfCache.getCountDownPathByTempId(tempId).orElseThrow(
                             () -> new OsfException("Temp file expired")
                     );
 
@@ -108,6 +108,7 @@ public class MinioOsf extends AbstractOsf {
                             .bucket(fileBucket)
                             .object(paths[2])
                             .build());
+                    logger.info("Delete success: " + file);
                     return true;
                 } catch (Exception e) {
                     logger.severe(e.getMessage());
@@ -122,6 +123,7 @@ public class MinioOsf extends AbstractOsf {
                             .object(tempPath)
                             .bucket(tempBucket)
                             .build());
+                    logger.info("DeleteTemp success: " + tempPath);
                     return true;
                 } catch (Exception e) {
                     logger.severe(e.getMessage());
@@ -155,7 +157,7 @@ public class MinioOsf extends AbstractOsf {
                             .stream(stream, stream.available(), -1)
                             .build());
 
-                    osfCache.newTempMap(tempUuid, tempName);
+                    osfCache.newCountDownTempMap(tempUuid, tempName);
                     osfSender.send(DelayMessage.newPictureDelayMessage(tempName));
 
                     return tempUuid;
@@ -184,7 +186,7 @@ public class MinioOsf extends AbstractOsf {
                 String suffix = getFileSuffixName(filename);
                 String mimeType = getMimeType(filename);
 
-                final Optional<String> tempNameOpt = osfCache.getPathByTempId(tempId);
+                final Optional<String> tempNameOpt = osfCache.getCountDownPathByTempId(tempId);
                 if (!tempNameOpt.isPresent()) {
                     throw new OsfException("Does not exist tempPath by tempId:" + tempId);
                 }
@@ -211,7 +213,7 @@ public class MinioOsf extends AbstractOsf {
 
             @Override
             protected void transferThumbnail(String tempId) throws OsfException {
-                final Optional<String> tempNameOpt = osfCache.getPathByTempId(tempId);
+                final Optional<String> tempNameOpt = osfCache.getCountDownPathByTempId(tempId);
                 if (!tempNameOpt.isPresent()) {
                     throw new OsfException("Does not exist tempPath by tempId:" + tempId);
                 }
@@ -240,7 +242,7 @@ public class MinioOsf extends AbstractOsf {
                 String[] paths = file.split("/");
 
                 if (!fileBucket.equals(paths[1])) {
-                    logger.warning("deleteThumbnail fail, file path is: " + file);
+                    logger.warning("DeleteThumbnail fail, file path is: " + file);
                 }
 
                 if (fileBucket.equals(paths[1])) {
@@ -251,8 +253,9 @@ public class MinioOsf extends AbstractOsf {
                                     .object(thumbnailName)
                                     .bucket(fileBucket)
                                     .build());
+                            logger.info("DeleteThumbnail success: " + file);
                         } catch (Exception e) {
-                            logger.warning("deleteThumbnail error:" + thumbnailName + "\n" + e.getMessage());
+                            logger.warning("DeleteThumbnail error:" + thumbnailName + "\n" + e.getMessage());
                         }
                     }
                 }
@@ -267,8 +270,9 @@ public class MinioOsf extends AbstractOsf {
                                 .object(thumbnailName)
                                 .bucket(tempBucket)
                                 .build());
+                        logger.info("DeleteTempThumbnail success: " + file);
                     } catch (Exception e) {
-                        logger.warning("deleteTempThumbnail error:" + thumbnailName + "\n" + e.getMessage());
+                        logger.warning("DeleteTempThumbnail error:" + thumbnailName + "\n" + e.getMessage());
                     }
                 }
             }

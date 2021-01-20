@@ -33,13 +33,6 @@ public class LocalReceiver extends DefaultReceiver implements ApplicationListene
                 deleted = getAbstractOsf().getPictureAction().deleteTemp(tempPath);
                 break;
         }
-
-        if (deleted) {
-            logger.info("Delete temp success:" + tempPath);
-        } else {
-            logger.severe("Delete temp fail:" + tempPath);
-        }
-
         return deleted;
     }
 

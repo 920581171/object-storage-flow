@@ -40,7 +40,6 @@ public class RabbitReceiver extends DefaultReceiver {
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                 ObjectMapper objectMapper = new ObjectMapper();
                 final DelayMessage delayMessage = objectMapper.readValue(body, DelayMessage.class);
-                logger.info("RabbitReceiver " + delayMessage.toString());
                 receive(delayMessage);
                 channel.basicAck(envelope.getDeliveryTag(), false);
                 super.handleDelivery(consumerTag, envelope, properties, body);
@@ -51,6 +50,7 @@ public class RabbitReceiver extends DefaultReceiver {
 
     @Override
     public boolean handler(DelayMessage delayMessage) {
+        logger.info("RabbitReceiver " + delayMessage.toString());
         boolean deleted = false;
         switch (delayMessage.getFileType()) {
             case FILE:
@@ -60,13 +60,6 @@ public class RabbitReceiver extends DefaultReceiver {
                 deleted = getAbstractOsf().getPictureAction().deleteTemp(delayMessage.getTempPath());
                 break;
         }
-
-        if (deleted) {
-            logger.info("Delete temp success:" + delayMessage.toString());
-        } else {
-            logger.severe("Delete temp fail:" + delayMessage.toString());
-        }
-
         return deleted;
     }
 }

@@ -6,6 +6,7 @@ import com.luoyk.osf.core.cache.OsfCache;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
@@ -17,10 +18,12 @@ public class LocalCache implements OsfCache {
 
     private final Logger logger = Logger.getLogger(LocalCache.class.getName());
 
-    private final Cache<String, String> TEMP_ID_PATH_MAP;
+    private final Cache<String, String> tempIdPathMap;
+
+    private final ConcurrentHashMap<String, String> hashMap = new ConcurrentHashMap<>();
 
     public LocalCache(int timeToLive) {
-        TEMP_ID_PATH_MAP = CacheBuilder.newBuilder()
+        tempIdPathMap = CacheBuilder.newBuilder()
                 .removalListener(removalNotification ->
                         logger.info("remove cache key:" + removalNotification.getKey() +
                                 ", value:" + removalNotification.getValue() +
@@ -31,19 +34,36 @@ public class LocalCache implements OsfCache {
 
     @Override
     public boolean newTempMap(String tempId, String path) {
-        TEMP_ID_PATH_MAP.put(tempId, path);
+        hashMap.put(tempId, path);
         return true;
     }
 
     @Override
     public boolean removeTempId(String tempId) {
-        TEMP_ID_PATH_MAP.invalidate(tempId);
+        hashMap.remove(tempId);
         return true;
     }
 
     @Override
     public Optional<String> getPathByTempId(String tempId) {
-        return Optional.ofNullable(TEMP_ID_PATH_MAP.getIfPresent(tempId));
+        return Optional.ofNullable(hashMap.get(tempId));
+    }
+
+    @Override
+    public boolean newCountDownTempMap(String tempId, String path) {
+        tempIdPathMap.put(tempId, path);
+        return true;
+    }
+
+    @Override
+    public boolean removeCountDownTempId(String tempId) {
+        tempIdPathMap.invalidate(tempId);
+        return true;
+    }
+
+    @Override
+    public Optional<String> getCountDownPathByTempId(String tempId) {
+        return Optional.ofNullable(tempIdPathMap.getIfPresent(tempId));
     }
 
 }
