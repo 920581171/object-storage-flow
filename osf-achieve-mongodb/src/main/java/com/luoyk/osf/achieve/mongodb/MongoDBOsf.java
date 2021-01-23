@@ -90,47 +90,89 @@ public class MongoDBOsf extends AbstractOsf implements MessageHandler {
         return new PictureAction() {
             @Override
             protected String saveTempProvider(String filename, InputStream inputStream) {
-                return null;
+                final String mimeType = getMimeType(filename);
+                final String suffix = getFileSuffixName(filename);
+                final String tempUuid = getTempUuid();
+                final String tempName = concatFilename(getTempUuid(), suffix);
+
+                if (!isImage(filename)) {
+                    throw new OsfException("Not a image " + filename);
+                }
+
+                InputStream stream = new ByteArrayInputStream(compressImage(inputStream, suffix));
+
+                gridFsTemplate.store(stream, tempName, mimeType);
+                osfCache.newTempMap(tempUuid, tempName);
+                osfSender.send(DelayMessage.newPictureDelayMessage(tempUuid));
+
+                return tempUuid;
             }
 
             @Override
             protected String transferFileProvider(String tempId) {
-                return null;
+                return getFileAction().transferFile(tempId);
             }
 
             @Override
             protected boolean deleteProvider(String file) {
-                return false;
+                return getFileAction().delete(file);
             }
 
             @Override
             protected boolean deleteTempProvider(String file) {
-                return false;
+                return getFileAction().deleteTemp(file);
             }
 
             @Override
             protected void makeThumbnail(String tempId, String filename, InputStream inputStream) throws OsfException {
+                String suffix = getFileSuffixName(filename);
+                String mimeType = getMimeType(filename);
 
+                final Optional<String> tempNameOpt = osfCache.getPathByTempId(tempId);
+                if (!tempNameOpt.isPresent()) {
+                    throw new OsfException("Does not exist tempPath by tempId:" + tempId);
+                }
+
+                ByteArrayInputStream stream;
+
+                for (PictureSizeEnum value : PictureSizeEnum.values()) {
+                    String thumbnailName = value.fixName() + "/" + tempNameOpt.get();
+                    try {
+                        inputStream.reset();
+                        stream = new ByteArrayInputStream(resizeImage(inputStream, suffix, value.size(), value.size()));
+                        gridFsTemplate.store(stream, thumbnailName, mimeType);
+                    } catch (Exception e) {
+                        logger.warning("makeThumbnail error: " + thumbnailName + "\n" + e.getMessage());
+                    }
+                }
             }
 
             @Override
             protected void transferThumbnail(String tempId) throws OsfException {
-
+                //NONE
             }
 
             @Override
             protected void deleteThumbnail(String file) throws OsfException {
-
+                for (PictureSizeEnum value : PictureSizeEnum.values()) {
+                    String thumbnailName = value.fixName() + "/" + file;
+                    try {
+                        gridFsTemplate.delete(Query.query(GridFsCriteria.whereFilename().is(thumbnailName)));
+                        logger.info("DeleteThumbnail success: " + file);
+                    } catch (Exception e) {
+                        logger.warning("DeleteThumbnail error:" + thumbnailName + "\n" + e.getMessage());
+                    }
+                }
             }
 
             @Override
             protected void deleteTempThumbnail(String file) throws OsfException {
-
+                deleteThumbnail(file);
             }
 
             @Override
             public String transferReplace(String tempId, String oldFile) {
-                return null;
+                return getFileAction().transferReplace(tempId, oldFile);
             }
         };
     }
