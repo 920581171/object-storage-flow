@@ -9,7 +9,7 @@
     <version>1.0.0-SNAPSHOT</version>
     <modules>
         <module>osf-core</module>
-        <module>demo</module>
+        <module>osf-spring-boot-demo</module>
         <module>osf-spring-boot-starter</module>
         <module>osf-spring-boot-autoconfigure</module>
         <module>osf-achieve-minio</module>

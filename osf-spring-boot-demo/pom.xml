@@ -9,9 +9,8 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.luoyk</groupId>
-    <artifactId>demo</artifactId>
+    <artifactId>osf-spring-boot-demo</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <name>demo</name>
 
     <properties>
         <java.version>1.8</java.version>
