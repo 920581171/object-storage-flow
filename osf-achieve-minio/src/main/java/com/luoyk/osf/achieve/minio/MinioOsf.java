@@ -1,7 +1,7 @@
 package com.luoyk.osf.achieve.minio;
 
 import com.luoyk.osf.core.cache.OsfCache;
-import com.luoyk.osf.core.definition.AbstractOsf;
+import com.luoyk.osf.core.definition.achieve.AbstractOsf;
 import com.luoyk.osf.core.definition.achieve.FileAction;
 import com.luoyk.osf.core.definition.achieve.PictureAction;
 import com.luoyk.osf.core.exception.OsfException;

@@ -1,6 +1,6 @@
 package com.luoyk.osf.core.mq;
 
-import com.luoyk.osf.core.definition.AbstractOsf;
+import com.luoyk.osf.core.definition.achieve.AbstractOsf;
 
 /**
  * 默认的receiver抽象类

@@ -1,7 +1,7 @@
 package com.luoyk.osf.autoconfigure.definition;
 
 import com.luoyk.osf.core.cache.OsfCache;
-import com.luoyk.osf.core.definition.AbstractOsf;
+import com.luoyk.osf.core.helper.OsfHelper;
 import com.luoyk.osf.core.mq.OsfReceiver;
 import com.luoyk.osf.core.mq.OsfSender;
 import org.springframework.context.ApplicationContextAware;
@@ -12,7 +12,7 @@ public interface OsfAutoConfigure extends ApplicationContextAware, EnvironmentAw
     /**
      * osf操作类bean
      */
-    AbstractOsf abstractOsf();
+    OsfHelper osfHelper();
 
     /**
      * 缓存控制bean

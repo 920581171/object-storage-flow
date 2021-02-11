@@ -1,7 +1,7 @@
 package com.luoyk.osf.achieve.mongodb;
 
 import com.luoyk.osf.core.cache.OsfCache;
-import com.luoyk.osf.core.definition.AbstractOsf;
+import com.luoyk.osf.core.definition.achieve.AbstractOsf;
 import com.luoyk.osf.core.definition.achieve.FileAction;
 import com.luoyk.osf.core.definition.achieve.PictureAction;
 import com.luoyk.osf.core.exception.OsfException;
@@ -158,7 +158,7 @@ public class MongoDBOsf extends AbstractOsf implements MessageHandler {
                     String thumbnailName = value.fixName() + "/" + file;
                     try {
                         gridFsTemplate.delete(Query.query(GridFsCriteria.whereFilename().is(thumbnailName)));
-                        logger.info("DeleteThumbnail success: " + file);
+                        logger.info("DeleteThumbnail success: " + thumbnailName);
                     } catch (Exception e) {
                         logger.warning("DeleteThumbnail error:" + thumbnailName + "\n" + e.getMessage());
                     }

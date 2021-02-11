@@ -1,5 +1,7 @@
-package com.luoyk.osf.core.definition;
+package com.luoyk.osf.core.definition.achieve;
 
+import com.luoyk.osf.core.definition.Action;
+import com.luoyk.osf.core.definition.Osf;
 import com.luoyk.osf.core.definition.achieve.FileAction;
 import com.luoyk.osf.core.definition.achieve.PictureAction;
 import com.luoyk.osf.core.exception.OsfException;
@@ -19,7 +21,7 @@ import java.util.logging.Logger;
 /**
  * @author luoyk
  */
-public abstract class AbstractOsf {
+public abstract class AbstractOsf implements Osf {
 
     public final Logger logger = Logger.getLogger(this.getClass().getName());
 

@@ -1,6 +1,6 @@
 package com.luoyk.osf.core.loacl;
 
-import com.luoyk.osf.core.definition.AbstractOsf;
+import com.luoyk.osf.core.definition.achieve.AbstractOsf;
 import com.luoyk.osf.core.mq.DefaultReceiver;
 import com.luoyk.osf.core.mq.DelayMessage;
 import org.springframework.context.ApplicationListener;

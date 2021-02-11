@@ -1,6 +1,6 @@
 package com.luoyk.osf.achieve.fastdfs;
 
-import com.luoyk.osf.core.definition.AbstractOsf;
+import com.luoyk.osf.core.definition.achieve.AbstractOsf;
 import com.luoyk.osf.core.definition.achieve.FileAction;
 import com.luoyk.osf.core.definition.achieve.PictureAction;
 

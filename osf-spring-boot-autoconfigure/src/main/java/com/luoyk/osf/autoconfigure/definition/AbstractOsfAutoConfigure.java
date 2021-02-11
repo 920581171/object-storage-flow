@@ -2,7 +2,10 @@ package com.luoyk.osf.autoconfigure.definition;
 
 import com.luoyk.osf.core.cache.OsfCache;
 import com.luoyk.osf.core.cache.RedisOsfCache;
-import com.luoyk.osf.core.definition.AbstractOsf;
+import com.luoyk.osf.core.definition.Osf;
+import com.luoyk.osf.core.definition.achieve.AbstractOsf;
+import com.luoyk.osf.core.helper.OsfHelper;
+import com.luoyk.osf.core.helper.OsfTemplate;
 import com.luoyk.osf.core.loacl.LocalCache;
 import com.luoyk.osf.core.loacl.LocalReceiver;
 import com.luoyk.osf.core.loacl.LocalSender;
@@ -31,7 +34,7 @@ import java.util.logging.Logger;
  */
 public abstract class AbstractOsfAutoConfigure implements OsfAutoConfigure {
 
-    protected final Logger logger = Logger.getLogger(this.getClass().getName());
+    protected final Logger logger = Logger.getLogger(AbstractOsfAutoConfigure.class.getName());
 
     private ApplicationContext applicationContext;
 
@@ -44,14 +47,28 @@ public abstract class AbstractOsfAutoConfigure implements OsfAutoConfigure {
      *
      * @return AbstractOsf
      */
-    public abstract AbstractOsf abstractOsfProvider();
+    public abstract Osf abstractOsfProvider();
+
+    @Bean
+    public Osf osf() {
+        return abstractOsfProvider();
+    }
 
     /**
      * 创建AbstractOsf Bean
      */
     @Bean
-    public AbstractOsf abstractOsf() {
-        return abstractOsfProvider();
+    public OsfHelper osfHelper() {
+        Object osf = applicationContext.getBean("osf");
+        if (osf instanceof AbstractOsf) {
+            logger.info("initialization OsfTemplate");
+            return new OsfTemplate((AbstractOsf) osf);
+        }
+        logger.info("initialization CustomHelper: " + osf.getClass().getSimpleName());
+
+        // TODO: 2021/2/11 修改配置以支持自定义实现
+        return new OsfHelper((Osf) osf) {
+        };
     }
 
     /**
@@ -100,18 +117,27 @@ public abstract class AbstractOsfAutoConfigure implements OsfAutoConfigure {
     @Bean
     @Override
     public OsfReceiver osfReceiver() {
-        final AbstractOsf abstractOsf = (AbstractOsf) applicationContext.getBean("abstractOsf");
-        if (applicationContext.containsBean("rabbitTemplate")) {
-            logger.info("Found bean rabbitTemplate, initialization RabbitReceiver");
-            final RabbitTemplate rabbitTemplate = (RabbitTemplate) applicationContext.getBean("rabbitTemplate");
-            return new RabbitReceiver(rabbitTemplate, abstractOsf);
-        } else if (applicationContext.containsBean("jmsMessagingTemplate")) {
-            logger.info("Found bean jmsMessagingTemplate, initialization JmsMessagingReceiver");
-            final JmsMessagingTemplate jmsMessagingTemplate = (JmsMessagingTemplate) applicationContext.getBean("jmsMessagingTemplate");
-            return new JmsMessagingReceiver(jmsMessagingTemplate, abstractOsf);
+        final Object osfHelper = applicationContext.getBean("osfHelper");
+
+        if (osfHelper instanceof OsfTemplate) {
+            final OsfTemplate osfTemplate = (OsfTemplate) osfHelper;
+            final AbstractOsf abstractOsf = osfTemplate.getOsf();
+            if (applicationContext.containsBean("rabbitTemplate")) {
+                logger.info("Found bean rabbitTemplate, initialization RabbitReceiver");
+                final RabbitTemplate rabbitTemplate = (RabbitTemplate) applicationContext.getBean("rabbitTemplate");
+                return new RabbitReceiver(rabbitTemplate, abstractOsf);
+            } else if (applicationContext.containsBean("jmsMessagingTemplate")) {
+                logger.info("Found bean jmsMessagingTemplate, initialization JmsMessagingReceiver");
+                final JmsMessagingTemplate jmsMessagingTemplate = (JmsMessagingTemplate) applicationContext.getBean("jmsMessagingTemplate");
+                return new JmsMessagingReceiver(jmsMessagingTemplate, abstractOsf);
+            } else {
+                logger.warning("No found mq, initialization LocalReceiver");
+                return new LocalReceiver(abstractOsf);
+            }
         } else {
-            logger.warning("No found mq, initialization LocalReceiver");
-            return new LocalReceiver(abstractOsf);
+            // TODO: 2021/2/11 实现自定义配置
+            logger.info("initialization CustomReceiver");
+            return delayMessage -> false;
         }
     }
 

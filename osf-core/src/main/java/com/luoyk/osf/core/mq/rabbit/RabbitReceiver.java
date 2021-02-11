@@ -1,7 +1,7 @@
 package com.luoyk.osf.core.mq.rabbit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.luoyk.osf.core.definition.AbstractOsf;
+import com.luoyk.osf.core.definition.achieve.AbstractOsf;
 import com.luoyk.osf.core.mq.DefaultReceiver;
 import com.luoyk.osf.core.mq.DelayMessage;
 import com.rabbitmq.client.AMQP;

@@ -1,8 +1,7 @@
 package com.luoyk.osf.core.helper;
 
-import com.luoyk.osf.core.definition.AbstractOsf;
-import com.luoyk.osf.core.definition.achieve.FileAction;
-import com.luoyk.osf.core.definition.achieve.PictureAction;
+import com.luoyk.osf.core.definition.Osf;
+import com.luoyk.osf.core.definition.achieve.AbstractOsf;
 
 /**
  * 操作帮助类
@@ -11,18 +10,13 @@ import com.luoyk.osf.core.definition.achieve.PictureAction;
  */
 public abstract class OsfHelper {
 
-    private final AbstractOsf abstractOsf;
+    protected final Osf osf;
 
-    public OsfHelper(AbstractOsf abstractOsf) {
-        this.abstractOsf = abstractOsf;
+    public OsfHelper(Osf osf) {
+        this.osf = osf;
     }
 
-    public FileAction file() {
-        return abstractOsf.getFileAction();
+    public Osf getOsf() {
+        return osf;
     }
-
-    public PictureAction picture() {
-        return abstractOsf.getPictureAction();
-    }
-
 }

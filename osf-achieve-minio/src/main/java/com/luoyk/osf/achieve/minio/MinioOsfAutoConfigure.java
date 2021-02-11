@@ -1,7 +1,7 @@
 package com.luoyk.osf.achieve.minio;
 
 import com.luoyk.osf.autoconfigure.definition.AbstractOsfAutoConfigure;
-import com.luoyk.osf.core.definition.AbstractOsf;
+import com.luoyk.osf.core.definition.Osf;
 import io.minio.BucketExistsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
@@ -25,7 +25,7 @@ public class MinioOsfAutoConfigure extends AbstractOsfAutoConfigure {
     public static String fileBucket;
 
     @Override
-    public AbstractOsf abstractOsfProvider() {
+    public Osf abstractOsfProvider() {
         return new MinioOsf(tempBucket, fileBucket);
     }
 
