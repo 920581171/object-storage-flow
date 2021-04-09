@@ -4,7 +4,7 @@ import com.luoyk.osf.core.cache.OsfCache;
 import com.luoyk.osf.core.cache.RedisOsfCache;
 import com.luoyk.osf.core.definition.Osf;
 import com.luoyk.osf.core.definition.achieve.AbstractOsf;
-import com.luoyk.osf.core.helper.OsfHelper;
+import com.luoyk.osf.core.helper.OsfMultipleTemplate;
 import com.luoyk.osf.core.helper.OsfTemplate;
 import com.luoyk.osf.core.loacl.LocalCache;
 import com.luoyk.osf.core.loacl.LocalReceiver;
@@ -17,6 +17,8 @@ import com.luoyk.osf.core.mq.rabbit.RabbitReceiver;
 import com.luoyk.osf.core.mq.rabbit.RabbitSender;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
@@ -32,7 +34,9 @@ import java.util.logging.Logger;
  *
  * @author luoyk
  */
-public abstract class AbstractOsfAutoConfigure implements OsfAutoConfigure {
+public abstract class AbstractOsfAutoConfigure implements OsfAutoConfigure, BeanFactoryPostProcessor {
+
+    private static int configSize = 0;
 
     protected final Logger logger = Logger.getLogger(AbstractOsfAutoConfigure.class.getName());
 
@@ -42,6 +46,45 @@ public abstract class AbstractOsfAutoConfigure implements OsfAutoConfigure {
 
     private int timeToLive = 2 * 60 * 60 * 1000;
 
+    @Override
+    public void postProcessBeanFactory(@NonNull ConfigurableListableBeanFactory configurableListableBeanFactory) throws BeansException {
+        final Osf osf = abstractOsfProvider();
+        if (configSize == 0) {
+            configurableListableBeanFactory.registerSingleton("osf", osf);
+            configSize++;
+            if (osf instanceof AbstractOsf) {
+                logger.info("initialization OsfTemplate by " + osf.getClass());
+                configurableListableBeanFactory.registerSingleton("osfHelper", new OsfTemplate((AbstractOsf) osf));
+            }
+            logger.info("initialization CustomHelper: " + osf.getClass().getSimpleName());
+            // TODO: 2021/2/11 修改配置以支持自定义实现
+            //  register new customOsf()
+
+        } else {
+            configurableListableBeanFactory.registerSingleton("osf" + configSize, abstractOsfProvider());
+            final boolean osfTemplateExist = applicationContext.containsBean("osfHelper");
+            final boolean osfMultipleTemplateExist = applicationContext.containsBean("osfMultipleTemplate");
+            if (!osfTemplateExist) {
+                logger.warning("no found 'osfTemplate', can not initialization osfMultipleTemplate");
+                return;
+            }
+
+            if (!osfMultipleTemplateExist) {
+                OsfMultipleTemplate osfMultipleTemplate = new OsfMultipleTemplate();
+                OsfTemplate osfTemplate = (OsfTemplate) applicationContext.getBean("osfHelper");
+                osfMultipleTemplate.addTemplate(osfTemplate);
+                configurableListableBeanFactory.registerSingleton("osfMultipleTemplate", osfMultipleTemplate);
+                logger.info("initialization osfMultipleTemplate");
+            }
+
+            if (osf instanceof AbstractOsf) {
+                OsfMultipleTemplate osfMultipleTemplate = (OsfMultipleTemplate) applicationContext.getBean("osfMultipleTemplate");
+                logger.info("OsfMultipleTemplate add OsfTemplate by " + osf.getClass());
+                osfMultipleTemplate.addTemplate(new OsfTemplate((AbstractOsf) osf));
+            }
+        }
+    }
+
     /**
      * 提供AbstractOsf
      *
@@ -49,27 +92,7 @@ public abstract class AbstractOsfAutoConfigure implements OsfAutoConfigure {
      */
     public abstract Osf abstractOsfProvider();
 
-    @Bean
-    public Osf osf() {
-        return abstractOsfProvider();
-    }
-
-    /**
-     * 创建AbstractOsf Bean
-     */
-    @Bean
-    public OsfHelper osfHelper() {
-        Object osf = applicationContext.getBean("osf");
-        if (osf instanceof AbstractOsf) {
-            logger.info("initialization OsfTemplate");
-            return new OsfTemplate((AbstractOsf) osf);
-        }
-        logger.info("initialization CustomHelper: " + osf.getClass().getSimpleName());
-
-        // TODO: 2021/2/11 修改配置以支持自定义实现
-        return new OsfHelper((Osf) osf) {
-        };
-    }
+    //todo cache/mq 在多写下的处理方案
 
     /**
      * 根据是否存在对应的缓存Bean，创建OsfCache Bean
